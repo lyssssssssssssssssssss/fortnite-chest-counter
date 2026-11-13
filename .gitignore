@@ -1,0 +1,24 @@
+﻿# Build output
+bin/
+obj/
+dist/
+TestResults/
+*.binlog
+
+# Developer tool output
+probe-out/
+
+# Never commit replays or personal data
+*.replay
+*.db
+*.db-wal
+*.db-shm
+*.log
+settings.json
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo

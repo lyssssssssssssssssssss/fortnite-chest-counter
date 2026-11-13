@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Vendored from https://github.com/Shiqan/FortniteReplayDecompressor (MIT), commit 76f74c1. See ..\PATCHES.md -->
+  <PropertyGroup>
+    <AssemblyName>Unreal.Core</AssemblyName>
+    <RootNamespace>Unreal.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+</Project>

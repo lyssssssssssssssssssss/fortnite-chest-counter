@@ -1,0 +1,115 @@
+<Window x:Class="ChestCounter.App.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chest Counter – Settings" Width="620" Height="720" MinWidth="520" MinHeight="480"
+        WindowStartupLocation="CenterScreen" Background="#141417" Foreground="#EDEDF0"
+        FontFamily="{StaticResource UiFont}" FontSize="13" ResizeMode="CanResize">
+    <Window.Resources>
+        <Style TargetType="TextBlock" x:Key="Label">
+            <Setter Property="Foreground" Value="#B9B9C2" />
+            <Setter Property="Margin" Value="0,14,0,4" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style TargetType="TextBlock" x:Key="Hint">
+            <Setter Property="Foreground" Value="#7E7E88" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#1E1E23" />
+            <Setter Property="Foreground" Value="#F0F0F3" />
+            <Setter Property="BorderBrush" Value="#34343C" />
+            <Setter Property="CaretBrush" Value="#F0B43C" />
+            <Setter Property="Padding" Value="6,5" />
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#E2E2E6" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource ChipButton}">
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Focusable" Value="True" />
+        </Style>
+        <Style TargetType="DatePicker">
+            <Setter Property="Background" Value="#1E1E23" />
+            <Setter Property="BorderBrush" Value="#34343C" />
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" BorderBrush="#2A2A30" BorderThickness="0,1,0,0" Padding="20,12">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button Content="Rescan now" Click="OnRescan" ToolTip="Look for new or changed replays immediately" />
+                    <Button Content="Re-analyse all" Margin="8,0,0,0" Click="OnReanalyze" ToolTip="Analyse every replay still on disk again" />
+                    <Button Content="Data folder" Margin="8,0,0,0" Click="OnDataFolder" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Cancel" Click="OnCancel" IsCancel="True" />
+                    <Button Content="Save" Margin="8,0,0,0" Click="OnSave" IsDefault="True" Style="{StaticResource GoldChipButton}" Padding="16,6" FontSize="12.5" Focusable="True" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="22,6,22,16">
+            <StackPanel>
+                <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Margin="0,10,0,0" />
+
+                <TextBlock Style="{StaticResource Label}" Text="Season start date" />
+                <DatePicker x:Name="SeasonDate" SelectedDateFormat="Long" HorizontalAlignment="Left" Width="240" />
+                <TextBlock Style="{StaticResource Hint}" Text="Only matches played on or after this date (the date recorded inside each replay, your local time) count anywhere: totals, CPG, best match, sessions, graphs and history. Change it when a new Fortnite season starts." />
+
+                <CheckBox x:Name="PickaxeBox" Content="Don't count matches where I only held a pickaxe and got no chests" Margin="0,12,0,0" />
+                <TextBlock Style="{StaticResource Hint}" Text="AFK, spectating your squad, or eliminated before picking anything up. These would otherwise lower your chests-per-match average. They are listed under 'Excluded' on the dashboard." />
+
+                <TextBlock Style="{StaticResource Label}" Text="Fortnite replay folder" />
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Browse…" Margin="8,0,0,0" Click="OnBrowse" />
+                    <Button DockPanel.Dock="Right" Content="Auto" Margin="8,0,0,0" Click="OnAutoFolder" ToolTip="Use Fortnite's default folder" />
+                    <TextBox x:Name="FolderBox" />
+                </DockPanel>
+                <TextBlock x:Name="FolderHint" Style="{StaticResource Hint}" />
+
+                <TextBlock Style="{StaticResource Label}" Text="Display name" />
+                <TextBox x:Name="NameBox" Width="300" HorizontalAlignment="Left" MaxLength="40" />
+                <TextBlock Style="{StaticResource Hint}" Text="Shown in the dashboard header. (Fortnite scrambles player names inside replays, so it cannot be read automatically.)" />
+
+                <TextBlock Style="{StaticResource Label}" Text="Epic account to count" />
+                <TextBox x:Name="AccountBox" Width="380" HorizontalAlignment="Left" />
+                <TextBlock x:Name="AccountHint" Style="{StaticResource Hint}" />
+
+                <TextBlock Style="{StaticResource Label}" Text="Gum Gum Devil Fruit item id(s)" />
+                <TextBox x:Name="GumGumBox" />
+                <TextBlock Style="{StaticResource Hint}" Text="Fortnite's internal id for the Gum Gum Devil Fruit is WID_TackyGoofiness. Chests the game credits to you as destroyed while this item is equipped are labelled as Gum Gum destructions. Comma-separated." />
+
+                <TextBlock Style="{StaticResource Label}" Text="Extra eligible playlists (exact names)" />
+                <TextBox x:Name="EligibleBox" />
+                <TextBlock Style="{StaticResource Hint}" Text="Only needed if Epic renames public Battle Royale playlists. Built-in: Playlist_DefaultSolo/Duo/Trio/Squad and Playlist_NoBuildBR_Solo/Duo/Trio/Squad. Comma-separated." />
+
+                <TextBlock Style="{StaticResource Label}" Text="Always excluded playlists (exact names)" />
+                <TextBox x:Name="ExcludedBox" />
+                <TextBlock Style="{StaticResource Hint}" Text="Ranked (Habanero), tournaments (Showdown), Reload, Creative and unknown playlists are already excluded. Comma-separated." />
+
+                <TextBlock Style="{StaticResource Label}" Text="Dashboard port" />
+                <TextBox x:Name="PortBox" Width="120" HorizontalAlignment="Left" />
+                <TextBlock x:Name="PortHint" Style="{StaticResource Hint}" />
+
+                <TextBlock Style="{StaticResource Label}" Text="Behaviour" />
+                <CheckBox x:Name="TopmostBox" Content="Keep the widget on top of other windows" />
+                <CheckBox x:Name="StartupBox" Content="Start Chest Counter when I sign in to Windows (recommended)" />
+                <TextBlock Style="{StaticResource Hint}" Text="Fortnite keeps only about 100 replays. If Chest Counter is closed for a long time, the oldest matches can be deleted before they are counted. It uses no internet and ~0% CPU while waiting." />
+                <CheckBox x:Name="OpenDashBox" Content="Open the dashboard when Chest Counter starts" />
+                <TextBlock Style="{StaticResource Hint}" Text="Tip: to see the widget over Fortnite, use Windowed Fullscreen (exclusive fullscreen hides every other window)." />
+
+                <TextBlock Style="{StaticResource Label}" Text="Permission to read your replay folder" />
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Withdraw permission…" Click="OnRevoke" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock x:Name="AccessText" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="0" />
+                </DockPanel>
+
+                <TextBlock Style="{StaticResource Label}" Text="About" />
+                <TextBlock x:Name="AboutText" Style="{StaticResource Hint}" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

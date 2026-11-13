@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The assembly name must contain "ReplayReader": Unreal.Core's NetFieldParser only scans such assemblies for markers. -->
+  <PropertyGroup>
+    <AssemblyName>ChestCounter.ReplayReader</AssemblyName>
+    <RootNamespace>ChestCounter.ReplayReader</RootNamespace>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\lib\Unreal.Core\Unreal.Core.csproj" />
+    <ProjectReference Include="..\..\lib\Unreal.Encryption\Unreal.Encryption.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChestCounter.Tests" />
+  </ItemGroup>
+</Project>

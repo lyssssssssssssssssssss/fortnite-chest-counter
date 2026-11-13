@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/lib/">
+    <Project Path="lib/OozSharp/OozSharp.csproj" />
+    <Project Path="lib/Unreal.Core/Unreal.Core.csproj" />
+    <Project Path="lib/Unreal.Encryption/Unreal.Encryption.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ChestCounter.App/ChestCounter.App.csproj" />
+    <Project Path="src/ChestCounter.Core/ChestCounter.Core.csproj" />
+    <Project Path="src/ChestCounter.ReplayReader/ChestCounter.ReplayReader.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ChestCounter.Tests/ChestCounter.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/ChestCounter.Probe/ChestCounter.Probe.csproj" />
+  </Folder>
+</Solution>

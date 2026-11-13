@@ -1,0 +1,61 @@
+Chest Counter
+Copyright (c) 2026 lyssssssssssssssssssss (https://github.com/lyssssssssssssssssssss).
+All rights reserved.
+
+This is NOT open-source software. The source code in this repository is
+published for viewing only. Unless expressly permitted below, no part of it
+may be used, copied, modified or distributed in any form.
+
+1. WHAT YOU MAY DO
+
+   a. View the source code on GitHub.
+   b. Download an official release from this repository's "Releases" page and
+      run it on your own computer for personal, non-commercial use.
+   c. Share the link to this repository or its Releases page, and give
+      unmodified copies of an official release to friends free of charge.
+
+2. WHAT YOU MAY NOT DO (without the copyright holder's prior written permission)
+
+   a. Copy, reproduce or download the source code, in whole or in part, for use
+      in any other project, product or service.
+   b. Modify, adapt, translate, rewrite or create derivative works based on the
+      software or its source code.
+   c. Publish, redistribute, sublicense, sell, rent or otherwise make the source
+      code, or any modified version of the software, available to anyone.
+   d. Remove or alter this notice, or present the software, its source code, or
+      any part of them as your own work.
+   e. Give the source code, or substantial parts of it, to an artificial-
+      intelligence system, chatbot or code generator in order to reproduce,
+      rewrite or recreate it, or use it to train such a system.
+   f. Use the software or its source code for any commercial purpose.
+
+3. GITHUB FORKS
+
+   Because this repository is public, GitHub's Terms of Service allow other
+   GitHub users to view it and to "fork" it within GitHub. That is the only
+   additional right granted. A fork does not give anyone any of the rights
+   listed in section 2.
+
+4. THIRD-PARTY COMPONENTS
+
+   The folder "lib/" contains code from FortniteReplayDecompressor by Shiqan,
+   used under the MIT License (see lib/LICENSE-FortniteReplayDecompressor.txt
+   and lib/PATCHES.md). That code remains under its own licence. This notice
+   applies to everything else in this repository.
+
+5. ENFORCEMENT
+
+   Any use of the software or its source code that is not expressly permitted
+   above infringes the copyright holder's rights. The copyright holder reserves
+   all rights and remedies, including taking legal action and seeking damages
+   and injunctions against anyone who copies, distributes or claims the
+   software as their own.
+
+6. NO WARRANTY
+
+   The software is provided "as is", without warranty of any kind, express or
+   implied. In no event shall the copyright holder be liable for any claim,
+   damages or other liability arising from the software or its use.
+
+Fortnite is a trademark of Epic Games, Inc. This project is not affiliated
+with, endorsed or sponsored by Epic Games.

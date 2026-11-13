@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>ChestCounter.Core</AssemblyName>
+    <RootNamespace>ChestCounter.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ChestCounter.ReplayReader\ChestCounter.ReplayReader.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChestCounter.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The dashboard is embedded in the assembly: no loose files to lose, no external CDN at runtime. -->
+    <EmbeddedResource Include="Web\wwwroot\*.*" LogicalName="wwwroot/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

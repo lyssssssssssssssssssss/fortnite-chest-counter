@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Developer tool: dumps raw replay facts + diagnostics to JSON. Read-only on replay files. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ChestCounter.Probe</AssemblyName>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ChestCounter.ReplayReader\ChestCounter.ReplayReader.csproj" />
+    <ProjectReference Include="..\..\src\ChestCounter.Core\ChestCounter.Core.csproj" />
+  </ItemGroup>
+</Project>

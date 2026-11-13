@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Vendored from https://github.com/Shiqan/FortniteReplayDecompressor (MIT), commit 76f74c1. -->
+  <ItemGroup>
+    <ProjectReference Include="..\OozSharp\OozSharp.csproj" />
+  </ItemGroup>
+</Project>

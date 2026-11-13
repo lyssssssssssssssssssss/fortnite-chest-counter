@@ -1,0 +1,130 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chest Counter</title>
+  <meta name="description" content="Fortnite chest statistics from your local replays">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <h1>Chest Counter <span class="sep">·</span> <span id="name">…</span></h1>
+      <div class="meta">
+        <span class="dot" id="conn" title="Connecting…"></span>
+        <span id="updated">Connecting…</span>
+        <span class="muted">·</span>
+        <span id="refresh">auto refresh</span>
+      </div>
+    </header>
+
+    <div id="banner" class="banner" hidden></div>
+    <div id="notices"></div>
+
+    <section class="cards" id="cards" aria-label="Main statistics">
+      <article class="card gold"><div class="num" id="c-total">–</div><div class="lbl">chests in total</div><div class="sub" id="c-total-sub"></div></article>
+      <article class="card"><div class="num" id="c-matches">–</div><div class="lbl">matches analysed</div><div class="sub" id="c-matches-sub"></div></article>
+      <article class="card"><div class="num" id="c-cpg">–</div><div class="lbl">chests per match</div><div class="sub" id="c-cpg-sub"></div></article>
+      <article class="card"><div class="num" id="c-best">–</div><div class="lbl">best match</div><div class="sub" id="c-best-sub"></div></article>
+      <article class="card"><div class="num" id="c-since">–</div><div class="lbl">chests since the tool was started</div><div class="sub" id="c-since-sub"></div></article>
+      <article class="card" id="c-tr-card"><div class="num" id="c-treasures">–</div><div class="lbl">treasures found</div><div class="sub" id="c-tr-sub"></div></article>
+    </section>
+
+    <section>
+      <h2>Chests per day (last 30 days)</h2>
+      <div class="panel chart" id="daily" role="img" aria-label="Chests per day for the last 30 days"></div>
+    </section>
+
+    <section>
+      <h2>By type</h2>
+      <div class="panel table-panel">
+        <table class="types">
+          <thead><tr><th>Type</th><th class="r" title="Opened + destroyed (each container counted once)">Count</th></tr></thead>
+          <tbody id="types"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="two">
+      <div>
+        <h2>Opened vs destroyed</h2>
+        <div class="panel" id="split"></div>
+      </div>
+      <div>
+        <h2>Session</h2>
+        <div class="panel" id="session"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Chests per match history</h2>
+      <div class="panel chart" id="cpg" role="img" aria-label="Chests per match over time"></div>
+    </section>
+
+    <section>
+      <h2>Recent matches</h2>
+      <div class="panel table-panel scroll">
+        <table class="list clickable">
+          <thead><tr><th>Date</th><th>Mode</th><th class="r">Place</th><th class="r">Opened</th><th class="r">Destroyed</th><th class="r" title="Destroyed while the Gum Gum Devil Fruit was equipped">Gum Gum</th><th class="r">Chests</th><th class="r">Length</th></tr></thead>
+          <tbody id="matches"></tbody>
+        </table>
+      </div>
+      <div class="more"><button type="button" id="more-matches" class="btn ghost" hidden>Show all matches</button></div>
+    </section>
+
+    <section>
+      <h2>Session history</h2>
+      <div class="panel table-panel scroll">
+        <table class="list">
+          <thead><tr><th>Started</th><th>Ended</th><th class="r">Matches</th><th class="r">Chests</th><th class="r">Avg.</th><th class="r">Best</th><th class="r">Last match</th></tr></thead>
+          <tbody id="sessions"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <details class="panel fold" id="excluded-fold">
+        <summary><span>Excluded &amp; unclassified replays</span> <span class="count" id="excluded-count"></span></summary>
+        <p class="note">These replays are <strong>not</strong> counted anywhere. Only public Battle Royale and Zero Build matches played since the season start count. Ranked, tournaments, Reload, Creative, unknown playlists, incomplete or unreadable replays and duplicates are listed here so you can see exactly why.</p>
+        <div class="scroll">
+          <table class="list">
+            <thead><tr><th>Date</th><th>Replay</th><th>Category</th><th>Mode</th><th>Reason</th></tr></thead>
+            <tbody id="excluded"></tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <section>
+      <details class="panel fold">
+        <summary><span>How chests are counted</span></summary>
+        <div class="explain">
+          <p>Chest Counter only reads the replay files Fortnite saves in <code>%LOCALAPPDATA%\FortniteGame\Saved\Demos</code>. It never touches the game, its memory, its files or its network traffic.</p>
+          <ul>
+            <li><strong>Opened chests</strong> – every chest replicates who searched it (<code>SearchingPawn</code>) when it becomes searched (<code>bAlreadySearched</code>). A chest counts for you when the game names your character.</li>
+            <li><strong>Destroyed chests</strong> – when a chest is broken instead of opened (<code>bDestroyed</code>), the game credits whoever broke it, including chests inside a building you smash. Each chest is counted individually, never per building, and a chest that was opened is never counted again as destroyed.</li>
+            <li><strong>Gum Gum Devil Fruit</strong> – Fortnite's internal name for it is <code>TackyGoofiness</code>. A destroyed chest credited to you while the fruit was your equipped item is labelled as a Gum Gum destruction. Destructions the game does not credit to anyone are never counted.</li>
+            <li><strong>Eligible matches</strong> – only public Battle Royale and Zero Build playlists played since the season start date (the date recorded inside the replay). Everything else is excluded.</li>
+            <li><strong>Pickaxe-only matches</strong> – matches where the replay shows you only ever held a pickaxe and got no chests (AFK, spectating, or eliminated before looting) are not counted, so they don't lower your average. This can be turned off in Settings.</li>
+            <li><strong>CPG</strong> = total chests ÷ eligible matches analysed. Total chests = opened + destroyed.</li>
+            <li><strong>Treasures</strong> – not counted yet: the replay data does not reliably say which treasures were yours.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <footer id="foot"></footer>
+  </main>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button type="button" class="close" id="modal-close" aria-label="Close">×</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+  <div class="tip" id="tip" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

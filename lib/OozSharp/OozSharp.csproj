@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Vendored from https://github.com/Shiqan/FortniteReplayDecompressor (MIT), commit 76f74c1. Managed Oodle Kraken decoder. -->
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+</Project>

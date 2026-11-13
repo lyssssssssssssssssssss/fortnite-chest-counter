@@ -1,0 +1,37 @@
+CHEST COUNTER - counts the Fortnite chests you open and destroy
+===============================================================
+
+HOW TO INSTALL (about 1 minute)
+
+1. Extract this zip somewhere (right-click > Extract All).
+2. Double-click "Install Chest Counter.cmd".
+   - If Windows says "Windows protected your PC": click "More info", then "Run anyway".
+     (This appears because the app is not code-signed by a company. It is safe to skip.)
+   - You don't need administrator rights.
+3. Chest Counter asks for PERMISSION to read your Fortnite replay folder.
+   Click "Allow and start". If you click "Don't allow", it reads nothing and closes.
+4. In Fortnite, turn on:  Settings > Game > Replays > Record Replays: ON
+   Without replays there is nothing to count.
+
+Prefer not to install? You can also just double-click ChestCounter.exe.
+
+WHAT IT DOES
+- Reads only the replay files Fortnite saves on YOUR PC
+  (%LOCALAPPDATA%\FortniteGame\Saved\Demos), read-only.
+- Shows a small widget (total chests, last match, sessions, games played)
+  and a full dashboard in your browser at http://localhost:48231
+- Chests are added a few seconds after each match ends.
+
+WHAT IT NEVER DOES
+- Never touches Fortnite, its memory or its files, never sends inputs.
+  Nothing that can affect your account or anti-cheat.
+- Never uses the internet. Your stats stay on your PC
+  (%LOCALAPPDATA%\ChestCounter).
+
+TIPS
+- Use "Windowed Fullscreen" in Fortnite to see the widget over the game.
+- Right-click the widget for Settings, keep-on-top, opacity and more.
+- To uninstall: "Uninstall Chest Counter.cmd" (your stats are kept unless you
+  choose to delete them).
+
+More details: README.md
