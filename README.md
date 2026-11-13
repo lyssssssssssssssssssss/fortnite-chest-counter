@@ -6,7 +6,7 @@ A Windows 11 desktop widget and local web dashboard that count the Fortnite ches
 * **Dashboard**: `http://localhost:48231`, with full history, charts, per-match breakdowns and sessions.
 * **One local database**: both views read the same data from the same process, so they always agree.
 
-> **Download:** get **ChestCounter-Standalone-win-x64.zip** from the [Releases page](https://github.com/lyssssssssssssssssssss/fortnite-chest-counter/releases/latest), extract it and run `Install Chest Counter.cmd`. On first run the app asks for permission before it reads your replay folder.
+> **Download:** get **ChestCounter-Standalone-win-x64.zip** from the [Releases page](https://github.com/lyssssssssssssssssssss/fortnite-chest-counter/releases/latest), extract it and run `Install Chest Counter.cmd`. Working from a copy of this source code instead? Double-click **`Install Chest Counter.cmd`** at the top of the folder: it installs your local build, or downloads the latest release. On first run the app asks for permission before it reads your replay folder.
 >
 > **Licence:** All rights reserved. This is **not** open-source software: the code is published for viewing only. You may run the official releases, but you may not copy, modify, redistribute or claim the code. See [LICENSE](LICENSE).
 
