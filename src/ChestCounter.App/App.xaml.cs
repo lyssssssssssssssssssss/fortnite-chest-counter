@@ -21,6 +21,17 @@ public partial class App : Application
 
     public AppHost Host { get; private set; } = null!;
 
+    /// <summary>Runs before WPF loads any window or resource: logs the start and arms the start-up watchdog.</summary>
+    static App() => StartupGuard.Begin();
+
+    public App()
+    {
+        // Where a real stuck start-up was seen: before WPF finished initialising (test hook only).
+        StartupGuard.SimulateStallIfRequested();
+    }
+
+    private static bool HasArg(string name) => StartupGuard.HasArg(name);
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -58,6 +69,19 @@ public partial class App : Application
         }
 
         _mutex = new Mutex(true, MutexName, out var createdNew);
+        if (!createdNew && HasArg("--relaunched"))
+        {
+            // We replaced a copy whose start-up got stuck: wait for it to disappear, then take over.
+            try
+            {
+                createdNew = _mutex.WaitOne(TimeSpan.FromSeconds(30));
+            }
+            catch (AbandonedMutexException)
+            {
+                createdNew = true; // the stuck copy was terminated; the lock is ours now
+            }
+        }
+
         if (!createdNew)
         {
             // Already running: ask the running instance to show its widget, then quit.
@@ -90,6 +114,11 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += (_, a) => { Log.Error("Unobserved task exception", a.Exception); a.SetObserved(); };
 
         Host = new AppHost();
+        StartupGuard.MarkComplete(); // core is up; anything after this waits on the user, not on Windows
+        if (StartupGuard.Elapsed > TimeSpan.FromSeconds(10))
+        {
+            Log.Warn($"Start-up took {StartupGuard.Elapsed.TotalSeconds:F0} s.");
+        }
 
         // First run on this PC: ask before reading anything in the replay folder.
         if (!Host.Settings.Current.ReplayAccessGranted)
@@ -207,6 +236,16 @@ public partial class App : Application
     {
         if (_exiting) return;
         _exiting = true;
+
+        // Never leave a frozen copy behind (it would hold the single-instance lock and count nothing):
+        // if closing takes more than 10 seconds for any reason, end the process.
+        new Thread(() =>
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(10));
+            Log.Warn("Closing took more than 10 s; forcing the exit.");
+            Process.GetCurrentProcess().Kill();
+        }) { IsBackground = true, Name = "ExitWatchdog" }.Start();
+
         try { _widget?.SavePlacement(); } catch { }
         _tray?.Dispose();
         try { Host.Stop(reason); } catch (Exception ex) { Log.Error("Shutdown error", ex); }

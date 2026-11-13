@@ -163,9 +163,9 @@ public sealed class AppHost : IDisposable
         if (_stopped) return;
         _stopped = true;
         Log.Info($"Chest Counter stopping ({reason})");
-        _heartbeat?.Dispose();
-        Web.Dispose();
-        Library.Dispose();
+
+        // Record the clean stop FIRST: when Windows closes apps (shutdown, sign-out, updates) it may end the
+        // process at any moment after this point.
         if (_started)
         {
             try
@@ -179,6 +179,10 @@ public sealed class AppHost : IDisposable
                 Log.Error("Could not record the clean exit", ex);
             }
         }
+
+        _heartbeat?.Dispose();
+        Web.Dispose();
+        Library.Dispose();
     }
 
     public object StartSession()
