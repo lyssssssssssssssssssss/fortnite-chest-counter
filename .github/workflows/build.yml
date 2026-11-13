@@ -1,0 +1,44 @@
+# Builds and tests every push. Pushing a tag such as v1.2.0 also publishes the
+# Standalone and Small zips on the repository's Releases page.
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test
+        run: dotnet test tests/ChestCounter.Tests/ChestCounter.Tests.csproj -c Release --nologo
+
+      - name: Package
+        shell: pwsh
+        run: ./build.ps1 -SkipTests
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chest-counter-zips
+          path: dist/*.zip
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          body: |
+            Download **ChestCounter-Standalone-win-x64.zip** (works on any Windows 10/11 PC), extract it and run "Install Chest Counter.cmd".
+            The smaller **ChestCounter-Small** zip needs the free .NET 10 Desktop Runtime (the installer offers to install it).
+            See "READ ME FIRST.txt" inside the zip.
