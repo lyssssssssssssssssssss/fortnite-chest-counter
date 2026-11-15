@@ -109,7 +109,7 @@
             <li><strong>Eligible matches</strong> – only public Battle Royale and Zero Build playlists played since the season start date (the date recorded inside the replay). Everything else is excluded.</li>
             <li><strong>Pickaxe-only matches</strong> – matches where the replay shows you only ever held a pickaxe and got no chests (AFK, spectating, or eliminated before looting) are not counted, so they don't lower your average. This can be turned off in Settings.</li>
             <li><strong>CPG</strong> = total chests ÷ eligible matches analysed. Total chests = opened + destroyed.</li>
-            <li><strong>Treasures</strong> – not counted yet: the replay data does not reliably say which treasures were yours.</li>
+            <li><strong>Treasures</strong> – the season's treasure hunt gives you a treasure handler (<code>GA_TreasureHandler_*</code>) every time you receive a treasure, and the replay records the moment. A treasure is yours when the chest opened or broken at that moment is yours. The hunt also shares every treasure a teammate finds with the whole team: those are shown separately and never added to your total. Golden prize chests do not record who triggered them, so they are not counted.</li>
           </ul>
         </div>
       </details>

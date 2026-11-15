@@ -107,9 +107,9 @@
     $("c-best-sub").textContent = best ? dayLabel(parseLocal(best.startLocal)) : "";
     $("c-since").textContent = int(o.sinceAppStart);
     $("c-since-sub").textContent = `since ${timeHM(new Date(snap.app.startedUtc))}`;
-    $("c-treasures").textContent = o.treasures == null ? "–" : int(o.treasures);
-    $("c-tr-sub").textContent = o.treasures == null ? "not detectable yet" : "";
-    $("c-tr-card").title = o.treasures == null ? o.treasuresNote : "";
+    $("c-treasures").textContent = int(o.treasures);
+    $("c-tr-sub").textContent = o.teamTreasures ? `+${int(o.teamTreasures)} from your team` : "";
+    $("c-tr-card").title = o.treasuresNote;
 
     renderDaily();
     renderTypes();
@@ -352,7 +352,10 @@
       `<span class="k">Matches where you used the Gum Gum fruit</span><span class="v subv">${int(o.matchesWithGumGum)}</span>` +
       `<span class="k" title="Chests your teammates opened or broke – shown for reference, never added to your total">Teammates' chests <span class="muted">(not counted)</span></span><span class="v subv">${int(o.teamChests)}</span>` +
       `<span class="k" title="Chests destroyed near you that the game did not credit to anyone – never added to your total">Destroyed by nobody on record <span class="muted">(not counted)</span></span><span class="v subv">${int(o.unattributedDestroyed)}</span>` +
-      `</div>`;
+      `<span class="k" title="${esc(o.treasuresNote)}">★ Treasures you found</span><span class="v">${int(o.treasures)}</span>` +
+      `<span class="k" title="The treasure hunt shares every treasure with the whole team – shown for reference, never added to your total">★ Treasures your teammates found <span class="muted">(shared with you, not counted)</span></span><span class="v subv">${int(o.teamTreasures)}</span>` +
+      `</div>` +
+      (o.treasureMatchesUnchecked ? `<p class="note">Treasures are counted in ${int(o.matches - o.treasureMatchesUnchecked)} of your ${int(o.matches)} matches. The other ${int(o.treasureMatchesUnchecked)} could not be checked: Fortnite had already deleted their replays before treasures were tracked, or the replay did not record the treasure hunt.</p>` : "");
   }
 
   function renderSession() {
@@ -479,6 +482,9 @@
       `<span class="k">Ammo boxes · food boxes · loot cannons <span class="muted">(not chests)</span></span><span class="v subv">${m.ammo} · ${m.food} · ${m.cannon}</span>` +
       `<span class="k">Teammates' chests <span class="muted">(not counted)</span></span><span class="v subv">${m.teamChests}</span>` +
       `<span class="k">Destroyed by nobody on record <span class="muted">(not counted)</span></span><span class="v subv">${m.unattributedDestroyed}${m.unattributedDuringGumGum ? ` (${m.unattributedDuringGumGum} while you held the fruit)` : ""}</span>` +
+      (m.treasuresKnown
+        ? `<span class="k">★ Treasures you found · from teammates</span><span class="v">${m.treasures} <span class="subv">· ${m.teamTreasures}</span></span>`
+        : `<span class="k">★ Treasures</span><span class="v subv">could not be checked for this match</span>`) +
       `</div>` +
       (rows ? `<div class="events"><table class="list"><thead><tr><th>Time</th><th>Type</th><th>Action</th><th></th><th>Blueprint</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="note">No container interactions credited to you in this match.</p>`) +
       (m.notes ? `<p class="note">${esc(m.notes)}</p>` : "") +

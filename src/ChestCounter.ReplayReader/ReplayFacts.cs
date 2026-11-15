@@ -54,6 +54,22 @@ public sealed class ReplayFacts
     /// <summary>Weapon actor NetGUID -> item definition path (WeaponData).</summary>
     public Dictionary<uint, string> WeaponActorItem { get; } = new();
 
+    // ---- Treasure hunt ---------------------------------------------------------------------------
+    /// <summary>
+    /// Every GA_TreasureHandler_* ability that appeared in an ability list, in order. The game grants one for
+    /// each treasure a player receives (the treasure hunt also shares a teammate's treasure with the team).
+    /// </summary>
+    public List<TreasureGrant> TreasureGrants { get; } = new();
+    /// <summary>Ability list updates read / that could not be decoded (diagnostics).</summary>
+    public int AbilityListUpdates { get; set; }
+    /// <summary>
+    /// Actor -> largest number of entries received in one update of its ability list. The full list (about 60
+    /// abilities) normally arrives at the start of the match; some replays never record it, and then treasures
+    /// cannot be seen in that replay.
+    /// </summary>
+    public Dictionary<uint, int> AbilityListLargestUpdate { get; } = new();
+    public int AbilityListErrors { get; set; }
+
     // ---- Parse status ---------------------------------------------------------------------------
     public bool Completed { get; set; }
     public string? Error { get; set; }
@@ -80,6 +96,12 @@ public sealed record ContainerUpdate(
 public sealed record ContainerClose(float Time, string ContainerId, string ClassName, string Reason);
 
 public sealed record PawnWeaponChange(float Time, uint Pawn, uint WeaponActor);
+
+/// <summary>
+/// A treasure handler ability given to the ability system component of <paramref name="Actor"/> (the actor
+/// whose channel carried the list: the player's PlayerState).
+/// </summary>
+public sealed record TreasureGrant(float Time, uint Actor, int EntryId, string Ability);
 
 public sealed class ReplayDiagnostics
 {

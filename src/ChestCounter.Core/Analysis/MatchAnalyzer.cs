@@ -13,6 +13,20 @@ public sealed class AnalyzerOptions
     /// <summary>Two spawned (dynamic) containers of the same class closer than this (cm, horizontally) are the same container.</summary>
     public float DynamicSameSpotTolerance { get; init; } = 150f;
 
+    /// <summary>
+    /// A treasure comes from the chest event (yours or a teammate's) closest to it in time, looking this many
+    /// seconds before and after the moment the treasure was received. In real replays the chest event is almost
+    /// always in the same frame (0.0 s) or up to ~1.5 s away.
+    /// </summary>
+    public float TreasureSecondsBefore { get; init; } = 2f;
+    public float TreasureSecondsAfter { get; init; } = 1f;
+
+    /// <summary>
+    /// Treasures can only be seen when the replay recorded the recorder's full ability list (about 60 entries at
+    /// the start of the match). Some replays only record its removal at the end; those are "not tracked".
+    /// </summary>
+    public int MinFullAbilityList { get; init; } = 10;
+
     public EligibilityClassifier Eligibility { get; init; } = new();
 
     /// <summary>The PC's time zone; replay timestamps are local wall-clock time.</summary>
@@ -39,7 +53,7 @@ public sealed class AnalyzerOptions
 public sealed class MatchAnalyzer
 {
     /// <summary>Bump when counting rules change: replays still on disk are re-analysed automatically.</summary>
-    public const int Version = 2;
+    public const int Version = 3;
 
     /// <summary>Harvesting tools (pickaxes), e.g. WID_Harvest_Pickaxe_FNCS.</summary>
     public static bool IsPickaxe(string item) =>
@@ -150,6 +164,11 @@ public sealed class MatchAnalyzer
 
         m.UnattributedDestroyedDuringGumGum = m.Events.Count(e =>
             e.By == Attribution.Unknown && e.Kind.IsChest() && e.Action == ChestAction.Destroyed && FruitAround(e.Time));
+
+        if (recorder is uint me && m.RecorderFound)
+        {
+            AttributeTreasures(f, m, me);
+        }
 
         var unwitnessed = m.Events.Count(e => e.By == Attribution.Me && !e.Witnessed);
         if (unwitnessed > 0)
@@ -277,6 +296,33 @@ public sealed class MatchAnalyzer
                 var gum = by == Attribution.Me && fruitAround(u.Time);
                 m.Events.Add(new ContainerEvent(u.Time, key, u.ClassName, kind, ChestAction.Destroyed, by, gum, witnessed));
             }
+        }
+    }
+
+    /// <summary>
+    /// Treasure hunt: the game gives the player a GA_TreasureHandler_* ability for every treasure they receive,
+    /// and shares each treasure with the whole team. A treasure is yours when the chest event closest to it
+    /// (opened or broken, within the window) is one of yours; otherwise a teammate found it. If yours and a
+    /// teammate's are equally close it goes to the teammate, so your count is never inflated. Your own chests
+    /// are always in your replay, so a treasure with no chest event of yours nearby cannot be yours.
+    /// </summary>
+    private void AttributeTreasures(ReplayFacts f, MatchAnalysis m, uint recorder)
+    {
+        m.TreasuresTracked = f.AbilityListLargestUpdate.GetValueOrDefault(recorder) >= _options.MinFullAbilityList;
+        if (!m.TreasuresTracked)
+        {
+            return;
+        }
+
+        foreach (var g in f.TreasureGrants.Where(g => g.Actor == recorder))
+        {
+            var source = m.Events
+                .Where(e => e.Kind.IsChest() && (e.By == Attribution.Me || e.By == Attribution.Teammate)
+                    && e.Time >= g.Time - _options.TreasureSecondsBefore && e.Time <= g.Time + _options.TreasureSecondsAfter)
+                .OrderBy(e => Math.Abs(e.Time - g.Time))
+                .ThenBy(e => e.By == Attribution.Me ? 1 : 0)
+                .FirstOrDefault();
+            m.TreasureFinds.Add(new TreasureFind(g.Time, source?.By == Attribution.Me, source?.ClassName));
         }
     }
 

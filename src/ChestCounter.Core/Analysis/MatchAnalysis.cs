@@ -29,6 +29,9 @@ public sealed record ContainerEvent(
     /// <summary>False when the transition itself was not in the replay (container re-appeared already opened).</summary>
     bool Witnessed);
 
+/// <summary>One treasure received. <paramref name="SourceClass"/> is the chest it came from, when one was found.</summary>
+public sealed record TreasureFind(float Time, bool Mine, string? SourceClass);
+
 public enum ReplayStatus
 {
     /// <summary>Parsed successfully; see the eligibility.</summary>
@@ -95,7 +98,20 @@ public sealed class MatchAnalysis
     /// <summary>Unattributed chest destructions while the recorder had the Gum Gum fruit equipped (not credited).</summary>
     public int UnattributedDestroyedDuringGumGum { get; set; }
 
-    public int Treasures { get; set; }
+    /// <summary>
+    /// The replay recorded the recorder's ability list, so treasures can be seen. False for the few replays that
+    /// do not record it: their treasure counts are unknown, not zero.
+    /// </summary>
+    public bool TreasuresTracked { get; set; }
+
+    /// <summary>Every treasure the recorder received (treasure hunt), with who found it.</summary>
+    public List<TreasureFind> TreasureFinds { get; } = new();
+
+    /// <summary>Treasures you found (from a chest you opened or broke).</summary>
+    public int Treasures => TreasureFinds.Count(t => t.Mine);
+
+    /// <summary>Treasures a teammate found; the treasure hunt shares them with the whole team.</summary>
+    public int TeamTreasures => TreasureFinds.Count(t => !t.Mine);
 
     public List<string> Notes { get; } = new();
 

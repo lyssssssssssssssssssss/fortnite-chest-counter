@@ -37,6 +37,23 @@ public class IntegrationTests
     }
 
     [Fact]
+    public void Real_replay_ability_lists_decode_without_errors()
+    {
+        // The treasure count depends on decoding the recorder's ability list (treasure handler grants).
+        var real = RealReplays.Complete(5);
+        if (real.Count == 0) return;
+        var reader = new FactsReplayReader();
+        foreach (var path in real)
+        {
+            var f = reader.Read(path);
+            if (f.MapPath?.Contains("Delilah") != true) continue; // this season's map
+            Assert.True(f.AbilityListUpdates > 0, $"{Path.GetFileName(path)}: no ability list found");
+            Assert.Equal(0, f.AbilityListErrors);
+            Assert.All(f.TreasureGrants, g => Assert.Equal(f.RecorderPlayerState, g.Actor));
+        }
+    }
+
+    [Fact]
     public void Library_scan_handles_duplicates_cutoff_and_restart()
     {
         var real = RealReplays.Complete(3);

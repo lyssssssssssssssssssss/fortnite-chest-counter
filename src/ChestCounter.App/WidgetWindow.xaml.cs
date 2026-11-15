@@ -231,8 +231,10 @@ public partial class WidgetWindow : Window
         GamesLine.ToolTip = $"Every game since {snap.SeasonStart} in any mode, including ranked, tournaments and pickaxe-only games.\n" +
                             $"{snap.Overall.Matches.ToString("N0", c)} of them count towards your chest stats.";
 
-        TreasureText.Text = snap.Overall.Treasures is int tr ? tr.ToString("N0", c) : "–";
-        TreasureLine.ToolTip = snap.Overall.Treasures is null ? snap.Overall.TreasuresNote : null;
+        var o = snap.Overall;
+        TreasureText.Text = $"{o.Treasures.ToString("N0", c)} ";
+        TreasureDetail.Text = o.TeamTreasures > 0 ? $"· +{o.TeamTreasures.ToString("N0", c)} from team" : "";
+        TreasureLine.ToolTip = o.TreasuresNote;
 
         // Connection / activity indicator
         var lib = snap.Library;

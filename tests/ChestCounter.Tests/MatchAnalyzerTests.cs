@@ -31,6 +31,7 @@ public class MatchAnalyzerTests
         f.PlayerStateTeam[MyPs] = 6;
         f.PlayerStateTeam[MatePs] = 6;
         f.PlayerStateTeam[OtherPs] = 9;
+        f.AbilityListLargestUpdate[MyPs] = 60; // the replay recorded my full ability list
         return f;
     }
 
@@ -61,6 +62,115 @@ public class MatchAnalyzerTests
         f.ContainerUpdates.Add(U(300, "chestA", sp: MyPawn, s: true, a: 1, first: true)); // channel re-sent full state
         f.ContainerUpdates.Add(U(500, "chestA", sp: MyPawn, s: true, a: 1, first: true));
         Assert.Equal(1, Run(f).ChestsCredited);
+    }
+
+    // ---- Treasure hunt (patterns from real 43.10 replays: the treasure arrives in the same frame as the chest
+    //      event, or up to ~1.5 s away; teammates' treasures are shared with the whole team) ----------------
+
+    private static void Open(ReplayFacts f, float t, string id, uint pawn)
+    {
+        f.ContainerUpdates.Add(U(t - 5, id, first: true));
+        f.ContainerUpdates.Add(U(t, id, sp: pawn, s: true, a: 1));
+    }
+
+    private static void Treasure(ReplayFacts f, float t, int entry, uint actor = MyPs) =>
+        f.TreasureGrants.Add(new TreasureGrant(t, actor, entry, "GA_TreasureHandler_Generic_C"));
+
+    [Fact]
+    public void A_treasure_from_my_chest_is_mine()
+    {
+        var f = Facts();
+        Open(f, 145.5f, "chestA", MyPawn);
+        Treasure(f, 145.5f, 153);
+        var m = Run(f);
+        Assert.Equal(1, m.Treasures);
+        Assert.Equal(0, m.TeamTreasures);
+    }
+
+    [Fact]
+    public void A_treasure_from_a_teammates_chest_is_the_teams()
+    {
+        var f = Facts();
+        Open(f, 133.0f, "mine", MyPawn);      // 5.7 s before: too early to be the source
+        Open(f, 139.0f, "mates", MatePawn);   // 0.3 s after: the source
+        Treasure(f, 138.7f, 149);
+        var m = Run(f);
+        Assert.Equal(0, m.Treasures);
+        Assert.Equal(1, m.TeamTreasures);
+    }
+
+    [Fact]
+    public void A_treasure_with_no_chest_of_mine_nearby_is_the_teams()
+    {
+        // A teammate far away (not in my replay) found it: my own chests are always in my replay.
+        var f = Facts();
+        Open(f, 100f, "far", OtherPawn);
+        Treasure(f, 101f, 7);
+        var m = Run(f);
+        Assert.Equal(0, m.Treasures);
+        Assert.Equal(1, m.TeamTreasures);
+    }
+
+    [Fact]
+    public void An_equally_close_teammate_chest_wins_so_my_count_is_never_inflated()
+    {
+        var f = Facts();
+        Open(f, 50f, "mine", MyPawn);
+        Open(f, 50f, "mates", MatePawn);
+        Treasure(f, 50f, 1);
+        Assert.Equal(0, Run(f).Treasures);
+    }
+
+    [Fact]
+    public void A_treasure_from_a_chest_i_broke_is_mine_and_resends_are_not_counted_twice()
+    {
+        var f = Facts();
+        f.ContainerUpdates.Add(U(190f, "chestB", first: true));
+        f.ContainerUpdates.Add(U(191f, "chestB", sp: MyPawn, d: true, a: 1));
+        Treasure(f, 191f, 190);
+        Open(f, 245f, "chestC", MyPawn);
+        Treasure(f, 244.6f, 237);
+        var m = Run(f);
+        Assert.Equal(2, m.Treasures);
+        Assert.Equal(2, m.TreasureFinds.Count);
+    }
+
+    [Fact]
+    public void Treasures_are_unknown_not_zero_when_the_replay_did_not_record_my_ability_list()
+    {
+        // Seen in real replays: only the list's removal at the end of the match was recorded (0 entries added).
+        var f = Facts();
+        f.AbilityListLargestUpdate[MyPs] = 0;
+        Open(f, 10f, "chestA", MyPawn);
+        var m = Run(f);
+        Assert.False(m.TreasuresTracked);
+        Assert.Equal(0, m.Treasures);
+
+        f.AbilityListLargestUpdate[MyPs] = 60;
+        Assert.True(Run(f).TreasuresTracked);
+    }
+
+    [Fact]
+    public void Treasures_of_another_players_ability_list_are_ignored()
+    {
+        var f = Facts();
+        Open(f, 10f, "chestA", MyPawn);
+        Treasure(f, 10f, 1, actor: MatePs);
+        var m = Run(f);
+        Assert.Equal(0, m.Treasures);
+        Assert.Equal(0, m.TeamTreasures);
+    }
+
+    [Fact]
+    public void The_golden_prize_chest_is_not_a_chest()
+    {
+        Assert.Equal(ContainerKind.Ignored, ContainerKinds.Classify("BGA_DelilahTreasureHuntAnimatedChest_C"));
+        var f = Facts();
+        f.ContainerUpdates.Add(U(109.9f, "dyn#15184", "BGA_DelilahTreasureHuntAnimatedChest_C", first: true, dynamic: true, x: 1, y: 1));
+        f.ContainerUpdates.Add(U(111.7f, "dyn#15184", "BGA_DelilahTreasureHuntAnimatedChest_C", sp: MyPawn, d: true, a: 1, dynamic: true, x: 1, y: 1));
+        var m = Run(f);
+        Assert.Equal(0, m.ChestsCredited);
+        Assert.Empty(m.Events);
     }
 
     [Fact]

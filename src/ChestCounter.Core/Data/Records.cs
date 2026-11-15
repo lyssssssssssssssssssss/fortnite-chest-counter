@@ -66,7 +66,19 @@ public sealed class MatchRecord
     public int UnattributedDestroyed { get; set; }
     public int UnattributedDuringGumGum { get; set; }
     public int TeamChests { get; set; }
+
+    /// <summary>Treasures you found (treasure hunt). Only known when <see cref="TreasuresKnown"/>.</summary>
     public int Treasures { get; set; }
+
+    /// <summary>Treasures your teammates found and the treasure hunt shared with you.</summary>
+    public int TeamTreasures { get; set; }
+
+    /// <summary>
+    /// The treasure counts are real: the match was analysed by a version that counts treasures and its replay
+    /// recorded them. False for older matches whose replays Fortnite deleted first, and for replays that did
+    /// not record the treasure hunt.
+    /// </summary>
+    public bool TreasuresKnown { get; set; }
 
     /// <summary>Excluded because it was older than the newest N eligible matches at the first import.</summary>
     public bool LimitExcluded { get; set; }

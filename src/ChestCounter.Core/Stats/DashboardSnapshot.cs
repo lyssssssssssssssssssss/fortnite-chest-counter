@@ -34,7 +34,12 @@ public sealed record OverallStats(
     int BestMatch,
     long? BestMatchId,
     int SinceAppStart,
-    int? Treasures,
+    /// <summary>Treasures you found in chests you opened or broke (treasure hunt).</summary>
+    int Treasures,
+    /// <summary>Treasures your teammates found; the treasure hunt shares them with the whole team.</summary>
+    int TeamTreasures,
+    /// <summary>Counted matches that could not be checked for treasures (replay deleted before treasures were tracked).</summary>
+    int TreasureMatchesUnchecked,
     string TreasuresNote,
     int TeamChests,
     int UnattributedDestroyed,
@@ -73,6 +78,9 @@ public sealed record MatchView(
     int Ammo, int Food, int Cannon,
     int TeamChests,
     int UnattributedDestroyed,
+    /// <summary>Treasures you found / your teammates found in this match; null when it was never checked for treasures.</summary>
+    int? Treasures,
+    int? TeamTreasures,
     int? Placement,
     int? TotalPlayers,
     int? Eliminations,

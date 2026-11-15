@@ -1,4 +1,4 @@
-using ChestCounter.Core.Data;
+﻿using ChestCounter.Core.Data;
 using ChestCounter.Core.Library;
 using ChestCounter.Core.Settings;
 
@@ -42,6 +42,18 @@ public static class StatsCalculator
         var total = counted.Sum(m => m.Credited);
         var best = counted.OrderByDescending(m => m.Credited).ThenByDescending(m => m.StartUtc).FirstOrDefault();
         var last10 = counted.TakeLast(10).ToList();
+        var treasureChecked = counted.Where(m => m.TreasuresKnown).ToList();
+        var treasures = treasureChecked.Sum(m => m.Treasures);
+        var teamTreasures = treasureChecked.Sum(m => m.TeamTreasures);
+        var notChecked = counted.Count - treasureChecked.Count;
+        var treasuresNote = $"Treasures you found in chests you opened or broke. Your teammates found {teamTreasures:N0} more, "
+            + "which the treasure hunt shares with your team (not in your total).";
+        if (notChecked > 0)
+        {
+            treasuresNote += $" Counted in {treasureChecked.Count:N0} of your {counted.Count:N0} matches. The other {notChecked:N0} could not be "
+                + "checked: Fortnite had already deleted their replays before treasures were tracked, or the replay did not record the treasure hunt.";
+        }
+
         var overall = new OverallStats(
             TotalCredited: total,
             Opened: counted.Sum(m => m.Opened),
@@ -52,8 +64,10 @@ public static class StatsCalculator
             BestMatch: best?.Credited ?? 0,
             BestMatchId: best?.Id,
             SinceAppStart: counted.Where(m => m.EndUtc >= input.AppStartedUtc).Sum(m => m.Credited),
-            Treasures: null,
-            TreasuresNote: "Treasures cannot yet be attributed to you reliably from replay data, so they are not counted.",
+            Treasures: treasures,
+            TeamTreasures: teamTreasures,
+            TreasureMatchesUnchecked: notChecked,
+            TreasuresNote: treasuresNote,
             TeamChests: counted.Sum(m => m.TeamChests),
             UnattributedDestroyed: counted.Sum(m => m.UnattributedDestroyed),
             Last10Cpg: last10.Count > 0 ? Cpg(last10.Sum(m => m.Credited), last10.Count) : null,
@@ -67,7 +81,9 @@ public static class StatsCalculator
             m.Id, m.StartUtc, m.StartLocal, m.DurationSeconds, verdicts[m.Id].Mode, m.Playlist,
             m.Opened, m.Destroyed, m.Credited, m.GumGumDestroyed,
             m.Normal, m.Rare, m.Buried, m.Relic, m.Sprite, m.OtherChest, m.Ammo, m.Food, m.Cannon,
-            m.TeamChests, m.UnattributedDestroyed, m.Placement, m.TotalPlayers, m.Eliminations,
+            m.TeamChests, m.UnattributedDestroyed,
+            m.TreasuresKnown ? m.Treasures : null, m.TreasuresKnown ? m.TeamTreasures : null,
+            m.Placement, m.TotalPlayers, m.Eliminations,
             Path.GetFileName(m.FilePath), !input.ReplayFiles.TryGetValue(m.FilePath, out var rf) || rf.Missing);
 
         var matchViews = counted.OrderByDescending(m => m.StartUtc).Select(View).ToList();

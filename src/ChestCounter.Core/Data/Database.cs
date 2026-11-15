@@ -110,6 +110,17 @@ public sealed class Database
                 Exec(c, "ALTER TABLE matches ADD COLUMN only_pickaxe INTEGER NOT NULL DEFAULT 0");
             }
 
+            // v3: treasures found by teammates (shared with the team by the treasure hunt), and whether the
+            // match's treasures are known at all (old rows: no)
+            if (!HasColumn(c, "matches", "team_treasures"))
+            {
+                Exec(c, "ALTER TABLE matches ADD COLUMN team_treasures INTEGER NOT NULL DEFAULT 0");
+            }
+            if (!HasColumn(c, "matches", "treasures_known"))
+            {
+                Exec(c, "ALTER TABLE matches ADD COLUMN treasures_known INTEGER NOT NULL DEFAULT 0");
+            }
+
             if (GetMeta(c, "schema_version") is null)
             {
                 SetMeta(c, "schema_version", SchemaVersion.ToString(CultureInfo.InvariantCulture));
@@ -300,8 +311,8 @@ public sealed class Database
                       INSERT INTO matches(dedupe_key,file_path,start_local,start_utc,duration_s,playlist,recorder_found,account_id,branch,map,
                         placement,total_players,eliminations,opened,destroyed,gumgum_destroyed,normal,rare,buried,relic,sprite,other_chest,
                         ammo,food,cannon,other_container,unattributed_destroyed,unattributed_during_gumgum,team_chests,treasures,limit_excluded,
-                        analyzed_utc,analyzer_version,notes,only_pickaxe)
-                      VALUES($dk,$fp,$sl,$su,$d,$pl,$rf,$acc,$br,$map,$pla,$tp,$el,$op,$de,$gg,$n,$ra,$bu,$re,$sp,$oc,$am,$fo,$ca,$oco,$ua,$uag,$tc,$tr,$le,$au,$av,$no,$px);
+                        analyzed_utc,analyzer_version,notes,only_pickaxe,team_treasures,treasures_known)
+                      VALUES($dk,$fp,$sl,$su,$d,$pl,$rf,$acc,$br,$map,$pla,$tp,$el,$op,$de,$gg,$n,$ra,$bu,$re,$sp,$oc,$am,$fo,$ca,$oco,$ua,$uag,$tc,$tr,$le,$au,$av,$no,$px,$tt,$tk);
                       SELECT last_insert_rowid();
                       """
                     : """
@@ -309,7 +320,7 @@ public sealed class Database
                         branch=$br,map=$map,placement=$pla,total_players=$tp,eliminations=$el,opened=$op,destroyed=$de,gumgum_destroyed=$gg,
                         normal=$n,rare=$ra,buried=$bu,relic=$re,sprite=$sp,other_chest=$oc,ammo=$am,food=$fo,cannon=$ca,other_container=$oco,
                         unattributed_destroyed=$ua,unattributed_during_gumgum=$uag,team_chests=$tc,treasures=$tr,
-                        analyzed_utc=$au,analyzer_version=$av,notes=$no,only_pickaxe=$px
+                        analyzed_utc=$au,analyzer_version=$av,notes=$no,only_pickaxe=$px,team_treasures=$tt,treasures_known=$tk
                       WHERE id=$id;
                       SELECT $id;
                       """;
@@ -348,6 +359,8 @@ public sealed class Database
                 cmd.Parameters.AddWithValue("$av", m.AnalyzerVersion);
                 cmd.Parameters.AddWithValue("$no", m.Notes.Count > 0 ? string.Join("\n", m.Notes) : DBNull.Value);
                 cmd.Parameters.AddWithValue("$px", m.OnlyPickaxe ? 1 : 0);
+                cmd.Parameters.AddWithValue("$tt", m.TeamTreasures);
+                cmd.Parameters.AddWithValue("$tk", m.TreasuresTracked ? 1 : 0);
                 if (existingId is long id)
                 {
                     cmd.Parameters.AddWithValue("$id", id);
@@ -408,7 +421,7 @@ public sealed class Database
             SELECT id,dedupe_key,file_path,start_local,start_utc,duration_s,playlist,recorder_found,account_id,branch,map,placement,total_players,
                    eliminations,opened,destroyed,gumgum_destroyed,normal,rare,buried,relic,sprite,other_chest,ammo,food,cannon,other_container,
                    unattributed_destroyed,unattributed_during_gumgum,team_chests,treasures,limit_excluded,analyzed_utc,analyzer_version,notes,
-                   only_pickaxe
+                   only_pickaxe,team_treasures,treasures_known
             FROM matches ORDER BY start_utc DESC
             """;
         using var r = cmd.ExecuteReader();
@@ -455,6 +468,8 @@ public sealed class Database
                 AnalyzerVersion = r.GetInt32(33),
                 Notes = NStr(34),
                 OnlyPickaxe = r.GetInt32(35) != 0,
+                TeamTreasures = r.GetInt32(36),
+                TreasuresKnown = r.GetInt32(37) != 0,
             });
         }
         return list;

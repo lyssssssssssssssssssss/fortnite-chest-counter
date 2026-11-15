@@ -274,10 +274,33 @@ public class StatsTests
     }
 
     [Fact]
-    public void Treasures_are_reported_as_unavailable_not_zero()
+    public void Treasures_add_up_yours_and_your_teams_separately()
     {
-        var s = Compute([M(new DateTime(2026, 11, 5, 10, 0, 0), 10)]);
-        Assert.Null(s.Overall.Treasures);
-        Assert.False(string.IsNullOrWhiteSpace(s.Overall.TreasuresNote));
+        var a = M(new DateTime(2026, 11, 5, 10, 0, 0), 10);
+        a.TreasuresKnown = true; a.Treasures = 2; a.TeamTreasures = 1;
+        var b = M(new DateTime(2026, 11, 6, 10, 0, 0), 10);
+        b.TreasuresKnown = true; b.Treasures = 1; b.TeamTreasures = 3;
+        var ranked = M(new DateTime(2026, 11, 6, 11, 0, 0), 10, playlist: "Playlist_Habanero_Squad");
+        ranked.TreasuresKnown = true; ranked.Treasures = 5; // not an eligible match
+
+        var s = Compute([a, b, ranked]);
+        Assert.Equal(3, s.Overall.Treasures);
+        Assert.Equal(4, s.Overall.TeamTreasures);
+        Assert.Equal(0, s.Overall.TreasureMatchesUnchecked);
+        Assert.Contains(s.Matches, v => v.Treasures == 2 && v.TeamTreasures == 1);
+    }
+
+    [Fact]
+    public void Matches_whose_treasures_are_unknown_are_reported_as_unchecked()
+    {
+        var old = M(new DateTime(2026, 11, 2, 10, 0, 0), 10); // replay deleted before treasures were tracked
+        var now = M(new DateTime(2026, 11, 5, 10, 0, 0), 10);
+        now.TreasuresKnown = true; now.Treasures = 1;
+
+        var s = Compute([old, now]);
+        Assert.Equal(1, s.Overall.Treasures);
+        Assert.Equal(1, s.Overall.TreasureMatchesUnchecked);
+        Assert.Contains("1 of your 2 matches", s.Overall.TreasuresNote);
+        Assert.Contains(s.Matches, v => v.Treasures is null);
     }
 }

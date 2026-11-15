@@ -39,6 +39,8 @@ On first launch the app scans your replay folder and imports your **most recent 
 
 **Games played.** Both the widget (*Games* row) and the dashboard (under *matches analysed*) show how many games you've played since the season start, in any mode, plus today's count. It updates after every game. Only eligible matches count towards your chest stats.
 
+**Treasures.** The widget's *Treasures* row and the dashboard show the treasures you found in your own chests, with the ones your teammates found (and the hunt shared with you) as *+N from team*. Hover over the number for details.
+
 **Widget.** Drag it anywhere. Drag the bottom-right corner to resize, and it scales proportionally. The padlock locks its position. Right-click for more options: keep on top, opacity, reset size, settings, minimise to tray and exit. Double-click it to open the dashboard. Closing it only minimises it to the tray icon; use **Exit** to quit.
 
 * It never takes keyboard focus away from the game and never captures your input.
@@ -67,6 +69,7 @@ Every rule below was verified against real Fortnite 43.00 replays.
 | **Gum Gum Devil Fruit** | Fortnite's internal name is `WID_TackyGoofiness`, part of this season's fruit system (`DelilahPaaB`), with abilities such as `TackyGoofiness_Rocket`, `StretchLaunch` and `Grab`. A destroyed chest credited to you while this was your equipped item (within 3 s) is labelled *with the Gum Gum fruit*. |
 | **Total chests** | Opened + destroyed. A chest that was opened is never counted again as destroyed. A chest refilled mid-match and opened again counts again. |
 | **CPG** | Total chests ÷ eligible matches. |
+| **Treasures** | This season's treasure hunt gives you a `GA_TreasureHandler_*` ability every time you receive a treasure, and the replay records the exact moment. A treasure is **yours** when the chest opened or broken at that moment (within 2 s before to 1 s after) is yours. The hunt shares every treasure a teammate finds with the whole team: those are shown as *+N from team*, never added to your total. If your chest and a teammate's are equally close, it goes to the teammate, so your count is never inflated. |
 | **Chest types** | Chest (`Tiered_Chest_Athena`, `AlwaysSpawn_NormalChest`), rare (`AlwaysSpawn_RareChest`), buried (`B_Athena_BuriedChest_*`), extraction / relic (`B_TieredChest_Relics`, `BGA_ExtractionPointGameplay_Chest`), sprite poster (`B_SpritePosters_Booty_Chest`). Ammo boxes, food boxes and loot cannons are shown separately and are **not** in the chest total. |
 
 **Eligible matches.** Only public **Battle Royale** and **Zero Build** playlists count (`Playlist_Default*`, `Playlist_NoBuildBR_*`), taken from the playlist recorded in the replay. Ranked (`Habanero`), tournaments (`Showdown…`), Reload, Creative/UEFN and any unknown playlist are excluded everywhere. Unknown playlists are listed as *unclassified*. Every excluded replay is listed on the dashboard with the reason.
@@ -77,7 +80,7 @@ Every rule below was verified against real Fortnite 43.00 replays.
 
 ### Honest limitations
 
-* **Treasures** are shown as "–". The replay references the treasure-hunt abilities, but does not reliably say which treasures were yours, so nothing is counted rather than guessing.
+* **Treasures** can't be checked in every match. Matches whose replays Fortnite deleted before version 1.2.0 never had them checked, and a few replays don't record the treasure hunt at all. Those matches count as "could not be checked", never as zero, and the dashboard says how many there are. **Golden prize chests** (cosmetic prizes) don't record who triggered them, so they are not counted.
 * **Chests destroyed with no culprit on record** are never credited. The dashboard shows how many happened near you, and how many while you held the Gum Gum fruit, for transparency.
 * **Relic-finder buried chests** (`B_Athena_BuriedChest_RelicFinder`) don't record who dug them, so they are not credited.
 * **Teammates' chests** are shown for reference only.
@@ -131,6 +134,7 @@ build.ps1            # tests + publish to dist\ChestCounter (+ zip)
 dotnet test tests\ChestCounter.Tests
 dotnet run --project tools\ChestCounter.Probe -- --analyze --count 20   # per-match analysis of real replays
 dotnet run --project tools\ChestCounter.Probe -- --count 5 --out probe-out   # raw replay facts as JSON
+dotnet run --project tools\ChestCounter.Probe -- --treasures --count 50       # each treasure, and whose chest it came from
 ```
 
 | Path | Contents |
@@ -139,7 +143,7 @@ dotnet run --project tools\ChestCounter.Probe -- --count 5 --out probe-out   # r
 | `src/ChestCounter.Core` | Counting rules (`Analysis/MatchAnalyzer.cs`), eligibility, SQLite database, replay watcher, statistics, local web server and the embedded dashboard (`Web/wwwroot`). |
 | `src/ChestCounter.App` | WPF widget, tray icon and settings window (one process hosts everything). |
 | `lib/` | Vendored MIT replay parser (FortniteReplayDecompressor) with the patches documented in `lib/PATCHES.md`. |
-| `tests/` | 103 automated tests: synthetic fixtures for every rule, plus integration tests on real replays when present. |
+| `tests/` | 114 automated tests: synthetic fixtures for every rule, plus integration tests on real replays when present. |
 
 ## Licence
 

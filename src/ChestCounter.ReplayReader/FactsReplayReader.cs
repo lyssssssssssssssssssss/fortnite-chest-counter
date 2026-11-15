@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Security.Cryptography;
 using Unreal.Core;
 using Unreal.Core.Attributes;
@@ -45,6 +45,7 @@ public sealed class FactsReplayReader : ReplayReader<Replay>
     private readonly HashSet<uint> _pendingPlaylistIds = new();
     private readonly List<(float Time, uint Pawn, uint Weapon)> _weapons = new();
     private readonly Dictionary<uint, uint> _weaponItemIds = new();
+    private readonly HashSet<(uint Actor, int Entry)> _treasureEntries = new();
 
     public FactsReplayReader(bool diagnostics = false) : base(null!, ParseMode.Minimal)
     {
@@ -68,6 +69,7 @@ public sealed class FactsReplayReader : ReplayReader<Replay>
         _pendingPlaylistIds.Clear();
         _weapons.Clear();
         _weaponItemIds.Clear();
+        _treasureEntries.Clear();
 
         try
         {
@@ -482,6 +484,12 @@ public sealed class FactsReplayReader : ReplayReader<Replay>
             }
         }
 
+        if (field.Name == "ActivatableAbilities" && classNetCache.PathName.Contains("AbilitySystemComponent", StringComparison.Ordinal))
+        {
+            ReadAbilityList(archive, channelIndex);
+            return true;
+        }
+
         if (field.Name == "CurrentPlaylistInfo" && classNetCache.PathName.Contains("GameState", StringComparison.Ordinal))
         {
             try
@@ -508,6 +516,100 @@ public sealed class FactsReplayReader : ReplayReader<Replay>
         return true; // consumed (the base restores the read position to the end of the payload)
     }
 
+    /// <summary>
+    /// The ability list of an ability system component: a fast array of FGameplayAbilitySpec, sent with
+    /// delta-struct serialisation (per field: handle + bit count; the field names are not exported). Only the
+    /// recorder's own list is in a replay (it replicates to its owner). The season's treasure hunt gives the
+    /// player a GA_TreasureHandler_* ability for every treasure received, so we record when each such entry
+    /// first appears.
+    ///
+    /// The ability field is not identified by its handle (handles can change between Fortnite versions):
+    /// a field counts when its bits are exactly one object reference that resolves to a treasure handler class.
+    /// </summary>
+    private void ReadAbilityList(FBitArchive archive, uint channelIndex)
+    {
+        var actor = Channels[channelIndex]?.ActorId;
+        if (actor is null)
+        {
+            return;
+        }
+
+        _facts.AbilityListUpdates++;
+        try
+        {
+            if (archive.EngineNetworkVersion >= EngineNetworkVersionHistory.HISTORY_FAST_ARRAY_DELTA_STRUCT)
+            {
+                archive.ReadBit(); // bSupportsFastArrayDeltaStructSerialization
+            }
+
+            archive.ReadInt32(); // ArrayReplicationKey
+            archive.ReadInt32(); // BaseReplicationKey
+            var numDeletes = archive.ReadInt32();
+            var numChanged = archive.ReadInt32();
+            if (archive.IsError || numDeletes is < 0 or > 4096 || numChanged is < 0 or > 4096)
+            {
+                _facts.AbilityListErrors++;
+                return;
+            }
+
+            if (numChanged > _facts.AbilityListLargestUpdate.GetValueOrDefault(actor.Value))
+            {
+                _facts.AbilityListLargestUpdate[actor.Value] = numChanged;
+            }
+
+            for (var i = 0; i < numDeletes; i++)
+            {
+                archive.ReadInt32(); // removed entry id
+            }
+
+            for (var i = 0; i < numChanged; i++)
+            {
+                var id = archive.ReadInt32();
+                string? treasure = null;
+                for (var field = 0; ; field++)
+                {
+                    var handle = archive.ReadIntPacked();
+                    if (handle == 0)
+                    {
+                        break;
+                    }
+
+                    var numBits = (int)archive.ReadIntPacked();
+                    if (archive.IsError || field > 256 || numBits < 0 || numBits > archive.GetBitsLeft())
+                    {
+                        _facts.AbilityListErrors++;
+                        return;
+                    }
+
+                    if (treasure is null && numBits is >= 8 and <= 40)
+                    {
+                        var value = new NetBitReader(archive.ReadBits(numBits).ToArray(), numBits);
+                        var guid = value.ReadIntPacked();
+                        if (!value.IsError && value.GetBitsLeft() == 0 && guid > 0
+                            && _netGuidCache.TryGetPathName(guid, out var path)
+                            && path.Contains("TreasureHandler", StringComparison.OrdinalIgnoreCase))
+                        {
+                            treasure = path;
+                        }
+                    }
+                    else
+                    {
+                        archive.SkipBits(numBits);
+                    }
+                }
+
+                // An entry is re-sent whenever it changes; only its first appearance is a new treasure.
+                if (treasure is not null && _treasureEntries.Add((actor.Value, id)))
+                {
+                    _facts.TreasureGrants.Add(new TreasureGrant(CurrentFrameTime, actor.Value, id, ClassName(treasure)));
+                }
+            }
+        }
+        catch
+        {
+            _facts.AbilityListErrors++;
+        }
+    }
     private void ResolvePlaylist(uint id)
     {
         if (_netGuidCache.TryGetPathName(id, out var path) && !string.IsNullOrWhiteSpace(path))

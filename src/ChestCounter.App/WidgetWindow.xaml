@@ -105,9 +105,10 @@
                     </TextBlock>
 
                     <TextBlock Grid.Row="3" Text="Treasures" FontSize="12.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" x:Name="TreasureLine">
+                    <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" x:Name="TreasureLine">
                         <Run Text="★" FontSize="12.5" Foreground="{StaticResource StarBrush}" />
                         <Run x:Name="TreasureText" Text="–" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" />
+                        <Run x:Name="TreasureDetail" Text="" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" />
                     </TextBlock>
                 </Grid>
 

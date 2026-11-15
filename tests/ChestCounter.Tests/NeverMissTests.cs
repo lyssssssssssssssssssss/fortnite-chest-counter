@@ -112,12 +112,14 @@ public class NeverMissTests
     [Fact]
     public void Replays_deleted_before_they_were_read_are_flagged()
     {
-        var real = RealReplays.Complete(2); // newest first
-        if (real.Count < 2) return;
+        // Newest first. Use replays several matches apart so there really are matches between them
+        // (two back-to-back replays can be seconds apart, which is correctly not a gap).
+        var real = RealReplays.Complete(5);
+        if (real.Count < 5) return;
         using var data = new TempDir();
         using var demos = new TempDir();
         var older = demos.File("older.replay");
-        File.Copy(real[1], older);
+        File.Copy(real[4], older);
 
         using var host = QuietHost(data, demos.Path);
         host.Library.FortniteReplayCap = 1; // pretend the folder is "full" with 1 replay

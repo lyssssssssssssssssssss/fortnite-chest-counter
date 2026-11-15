@@ -117,12 +117,33 @@ public class DatabaseTests
         var old = Assert.Single(db.GetMatches());
         Assert.Equal(12, old.Opened);
         Assert.False(old.OnlyPickaxe);
+        Assert.Equal(0, old.TeamTreasures);
+        Assert.False(old.TreasuresKnown); // analysed before treasures were tracked
 
         var path = dir.File("afk.replay");
         var afk = Analysis("guid:afk", path, 0);
         afk.OnlyPickaxe = true;
         db.SaveAnalysis(File(path), afk);
         Assert.True(db.GetMatches().Single(m => m.DedupeKey == "guid:afk").OnlyPickaxe);
+    }
+
+    [Fact]
+    public void Treasures_round_trip()
+    {
+        using var dir = new TempDir();
+        var db = new Database(dir.File("t.db"));
+        var path = dir.File("t.replay");
+        var m = Analysis("guid:t", path, 2);
+        m.TreasureFinds.Add(new TreasureFind(10, true, "Tiered_Chest_Athena_C"));
+        m.TreasureFinds.Add(new TreasureFind(50, false, null));
+        m.TreasureFinds.Add(new TreasureFind(90, false, "Tiered_Chest_Athena_C"));
+        m.TreasuresTracked = true;
+        db.SaveAnalysis(File(path), m);
+
+        var r = Assert.Single(db.GetMatches());
+        Assert.Equal(1, r.Treasures);
+        Assert.Equal(2, r.TeamTreasures);
+        Assert.True(r.TreasuresKnown);
     }
 
     [Fact]

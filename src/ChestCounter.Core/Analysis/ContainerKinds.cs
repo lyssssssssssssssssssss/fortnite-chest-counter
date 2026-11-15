@@ -54,6 +54,11 @@ public static class ContainerKinds
         if (n.StartsWith("Prop_", StringComparison.OrdinalIgnoreCase))
             return ContainerKind.Ignored;
 
+        // The treasure hunt's golden prize chest (BGA_DelilahTreasureHuntAnimatedChest): it pops up after a chest
+        // gives a cosmetic prize and vanishes by itself; nobody opens it, so it is not a chest of its own.
+        if (Has("TreasureHuntAnimatedChest"))
+            return ContainerKind.Ignored;
+
         // Loot cannons (BGA_LootCannon_StandardChest_Pirate, BGA_LootCannonDuck_Child) are not chests even
         // though one of them has "Chest" in its name.
         if (Has("LootCannon"))
